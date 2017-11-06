@@ -1,10 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Player : MonoBehaviour
+public class Player : NetworkBehaviour
 {
-	public int health = 10;
+    [SyncVar]
+    public int health = 10;
+    [SyncVar]
+    public int score = 0;
 
     // Use this for initialization
     void Start()

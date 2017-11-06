@@ -12,9 +12,11 @@ public class GunMove : NetworkBehaviour
     Rigidbody rigi;
     Light lit;
     LineRenderer lr;
+    PlayerWeapons weps;
 
-    float fireRate = 0.5F;
-    float nextFire = 0.0F;
+    public float damage = 1;
+    public float fireRate = 0.5F;
+    public float nextFire = 0.0F;
 
     // Use this for initialization
     void Start()
@@ -27,6 +29,7 @@ public class GunMove : NetworkBehaviour
         rigi = GetComponent<Rigidbody>();
         lit = GetComponent<Light>();
         lr = GetComponent<LineRenderer>();
+        weps = GetComponent<PlayerWeapons>();
     }
 
     // Update is called once per frame
@@ -103,21 +106,70 @@ public class GunMove : NetworkBehaviour
         Vector3 fwd = target.transform.TransformDirection(Vector3.forward);
         //Dubuggin ray to see where the real ray is going
         Debug.DrawRay(target.transform.position, fwd * 50, Color.green);
+        Debug.DrawRay(target.transform.position, (Quaternion.Euler(0, -10, 0) * fwd) * 50);
+        Debug.DrawRay(target.transform.position, (Quaternion.Euler(0, 10, 0) * fwd) * 50, Color.green);
         RaycastHit hit;
-        //Cast ray
-        if (Physics.Raycast(target.transform.position, fwd, out hit))
+
+
+        //Cast ray for shotgun
+        if (weps.selectedWeapon == 2)
         {
-            Debug.Log("hit.transform.name");
-            //do something if hit object 
-            if (hit.transform.tag == "Enemy")
+            if (Physics.Raycast(target.transform.position, fwd, out hit))
             {
-                hit.transform.gameObject.GetComponent<Enemy>().health--;
-                Debug.Log("Close to enemy");
+                Debug.Log("hit.transform.name");
+                //do something if hit object 
+                if (hit.transform.tag == "Enemy")
+                {
+                    hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
+                    hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
+                    Debug.Log("Close to enemy");
+                }
+                if (Physics.Raycast(target.transform.position, (Quaternion.Euler(0, -10, 0) * fwd), out hit))
+                {
+                    Debug.Log("hit.transform.name");
+                    //do something if hit object 
+                    if (hit.transform.tag == "Enemy")
+                    {
+                        hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
+                        hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
+                        Debug.Log("Close to enemy");
+                    }
+                    if (Physics.Raycast(target.transform.position, (Quaternion.Euler(0, 10, 0) * fwd), out hit))
+                    {
+                        Debug.Log("hit.transform.name");
+                        //do something if hit object 
+                        if (hit.transform.tag == "Enemy")
+                        {
+                            hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
+                            hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
+                            Debug.Log("Close to enemy");
+                        }
+
+
+                        StartCoroutine("DisableLR", hit.point);
+                        nextFire = Time.time + fireRate;
+                    }
+                }
             }
+        }
+        else
+        {
+            //Cast ray for normal guns
+            if (Physics.Raycast(target.transform.position, fwd, out hit))
+            {
+                Debug.Log("hit.transform.name");
+                //do something if hit object 
+                if (hit.transform.tag == "Enemy")
+                {
+                    hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
+                    hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
+                    Debug.Log("Close to enemy");
+                }
 
-            StartCoroutine("DisableLR", hit.point);
+                StartCoroutine("DisableLR", hit.point);
 
-            nextFire = Time.time + fireRate;
+                nextFire = Time.time + fireRate;
+            }
         }
     }
 
@@ -127,8 +179,22 @@ public class GunMove : NetworkBehaviour
         lit.enabled = true;
         lr.numPositions = 2;
         lr.enabled = true;
-        lr.SetPosition(0, target.position);
-        lr.SetPosition(1, point);
+        if (weps.selectedWeapon == 2)
+        {
+            lr.numPositions = 6;
+
+            lr.SetPosition(0, target.position);
+            lr.SetPosition(1, point);
+            lr.SetPosition(2, target.position);
+            lr.SetPosition(3, Quaternion.Euler(0, 10, 0) * point);
+            lr.SetPosition(4, target.position);
+            lr.SetPosition(5, Quaternion.Euler(0, -10, 0) * point);
+        }
+        else
+        {
+            lr.SetPosition(0, target.position);
+            lr.SetPosition(1, point);
+        }
         yield return new WaitForSeconds(.05f);
         lr.enabled = false;
         lit.enabled = false;
