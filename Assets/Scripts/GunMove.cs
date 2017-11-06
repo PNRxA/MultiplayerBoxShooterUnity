@@ -54,7 +54,18 @@ public class GunMove : NetworkBehaviour
     {
         //Check if there is a joystick connected
         string[] joysticks = Input.GetJoystickNames();
-        if (joysticks[0].Length < 10 || joysticks.Length < 1)
+        if (joysticks.Length < 1)
+        {
+            //If there is no joystick, rotate using the mouse
+            mouse_pos = Input.mousePosition;
+            mouse_pos.z = 5.23f; //The distance between the camera and object
+            object_pos = Camera.main.WorldToScreenPoint(target.position);
+            mouse_pos.x = mouse_pos.x - object_pos.x;
+            mouse_pos.y = mouse_pos.y - object_pos.y;
+            angle = Mathf.Atan2(mouse_pos.x, mouse_pos.y) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(new Vector3(0, angle, 0));
+        }
+        else if (joysticks[0].Length < 10)
         {
             //If there is no joystick, rotate using the mouse
             mouse_pos = Input.mousePosition;
@@ -100,6 +111,7 @@ public class GunMove : NetworkBehaviour
             //do something if hit object 
             if (hit.transform.tag == "Enemy")
             {
+                hit.transform.gameObject.GetComponent<Enemy>().health--;
                 Debug.Log("Close to enemy");
             }
 
