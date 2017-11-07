@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Networking;
+using System;
 
 public class Enemy : NetworkBehaviour
 {
@@ -14,6 +15,9 @@ public class Enemy : NetworkBehaviour
     public float health = 3;
     float scrW, scrH;
     public Player playerToCredit;
+    public float newDmg, oldDmg;
+
+    public bool ShowDamageBox;
 
     // Use this for initialization
     void Start()
@@ -24,6 +28,8 @@ public class Enemy : NetworkBehaviour
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        newDmg = health;
+        oldDmg = health;
     }
 
     void Update()
@@ -79,6 +85,24 @@ public class Enemy : NetworkBehaviour
         scrW = Screen.width / 16;
         Vector3 wantedPos = Camera.main.WorldToScreenPoint(gameObject.transform.position);
         GUI.Box(new Rect(wantedPos.x + (scrW * -.75f), Screen.height - wantedPos.y - (scrH * .3f), health * (scrW * .5f), scrH * .2f), "");
+
+        if (oldDmg != health)
+        {
+            newDmg = oldDmg - health;
+            oldDmg = health;
+            StartCoroutine("ShowDamage");
+        }
+        if (ShowDamageBox)
+        {
+            GUI.Box(new Rect(wantedPos.x + (scrW * -.75f), Screen.height - wantedPos.y - (scrH * .3f), scrW * .5f, scrH * .5f), Math.Round(newDmg, 1).ToString());
+        }
+    }
+
+    IEnumerator ShowDamage()
+    {
+        ShowDamageBox = true;
+        yield return new WaitForSeconds(.08f);
+        ShowDamageBox = false;
     }
 
     //Destroy enemy when there is no more health

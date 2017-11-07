@@ -46,11 +46,13 @@ public class GunMove : NetworkBehaviour
                 //If using mouse, attack on mouse0 down
                 if (Input.GetButton("Fire1") && Time.time > nextFire)
                 {
+                    nextFire = Time.time + fireRate;
                     CmdAttack();
                 }
                 //If using controller, attack on right trigger down
                 if (Input.GetAxisRaw("Fire1") > 0 && Time.time > nextFire)
                 {
+                    nextFire = Time.time + fireRate;
                     CmdAttack();
                 }
             }
@@ -119,6 +121,7 @@ public class GunMove : NetworkBehaviour
         //Cast ray for shotgun
         if (weps.selectedWeapon == 2)
         {
+            
 
             if (Physics.Raycast(target.transform.position, fwd, out hit))
             {
@@ -159,7 +162,6 @@ public class GunMove : NetworkBehaviour
 
 
                         StartCoroutine("DisableLR", points);
-                        nextFire = Time.time + fireRate;
                     }
                 }
             }
@@ -182,7 +184,6 @@ public class GunMove : NetworkBehaviour
 
                 StartCoroutine("DisableLR", points);
 
-                nextFire = Time.time + fireRate;
             }
         }
     }
