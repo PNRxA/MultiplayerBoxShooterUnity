@@ -14,8 +14,10 @@ public class GunMove : NetworkBehaviour
     LineRenderer lr;
     PlayerWeapons weps;
 
-    public float damage = 1;
-    public float fireRate = 0.5F;
+    public float pistolDamage = 1;
+    public float rifleDamage = .1f;
+    public float shotgunDamage = 5;
+    public float[] fireRate = new float[3];
     public float nextFire = 0.0F;
 
     // Use this for initialization
@@ -46,14 +48,42 @@ public class GunMove : NetworkBehaviour
                 //If using mouse, attack on mouse0 down
                 if (Input.GetButton("Fire1") && Time.time > nextFire)
                 {
-                    nextFire = Time.time + fireRate;
-                    CmdAttack();
+                    nextFire = Time.time + fireRate[weps.selectedWeapon];
+                    int selectedWeapon = weps.selectedWeapon;
+                    float damage = 0;
+                    switch (selectedWeapon)
+                    {
+                        case 0:
+                            damage = pistolDamage;
+                            break;
+                        case 1:
+                            damage = rifleDamage;
+                            break;
+                        case 2:
+                            damage = shotgunDamage;
+                            break;
+                    }
+                    CmdAttack(selectedWeapon, damage);
                 }
                 //If using controller, attack on right trigger down
                 if (Input.GetAxisRaw("Fire1") > 0 && Time.time > nextFire)
                 {
-                    nextFire = Time.time + fireRate;
-                    CmdAttack();
+                    nextFire = Time.time + fireRate[weps.selectedWeapon];
+                    int selectedWeapon = weps.selectedWeapon;
+                    float damage = 0;
+                    switch (selectedWeapon)
+                    {
+                        case 0:
+                            damage = pistolDamage;
+                            break;
+                        case 1:
+                            damage = rifleDamage;
+                            break;
+                        case 2:
+                            damage = shotgunDamage;
+                            break;
+                    }
+                    CmdAttack(selectedWeapon, damage);
                 }
             }
         }
@@ -100,14 +130,15 @@ public class GunMove : NetworkBehaviour
 
     //Call the server command from the client
     [Command]
-    void CmdAttack()
+    void CmdAttack(int weapon, float damage)
     {
-        RpcAttack();
+        RpcAttack(weapon, damage);
     }
 
     [ClientRpc]
-    void RpcAttack()
+    void RpcAttack(int selectedWeapon, float damage)
     {
+
         //Determine what's in front of the gun
         Vector3 fwd = target.transform.TransformDirection(Vector3.forward);
         //Dubuggin ray to see where the real ray is going
@@ -119,10 +150,8 @@ public class GunMove : NetworkBehaviour
 
         Vector3[] points = new Vector3[3];
         //Cast ray for shotgun
-        if (weps.selectedWeapon == 2)
+        if (selectedWeapon == 2)
         {
-            
-
             if (Physics.Raycast(target.transform.position, fwd, out hit))
             {
                 Debug.Log("hit.transform.name");
@@ -160,13 +189,34 @@ public class GunMove : NetworkBehaviour
                         }
                         points[2] = hit.point;
 
+                        StartCoroutine(DisableLR(points, selectedWeapon));
 
-                        StartCoroutine("DisableLR", points);
                     }
                 }
             }
         }
-        else
+        else if (selectedWeapon == 1)
+        {
+            //Cast ray for normal guns
+            if (Physics.Raycast(target.transform.position, fwd, out hit))
+            {
+                Debug.Log("hit.transform.name");
+                //do something if hit object 
+                if (hit.transform.tag == "Enemy")
+                {
+                    hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
+                    hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
+                    Debug.Log("Close to enemy");
+
+                }
+                points[0] = hit.point;
+                StartCoroutine(DisableLR(points, selectedWeapon));
+
+
+
+            }
+        }
+        else if (selectedWeapon == 0)
         {
             //Cast ray for normal guns
             if (Physics.Raycast(target.transform.position, fwd, out hit))
@@ -182,22 +232,22 @@ public class GunMove : NetworkBehaviour
                 }
                 points[0] = hit.point;
 
-                StartCoroutine("DisableLR", points);
+                StartCoroutine(DisableLR(points, selectedWeapon));
 
             }
         }
     }
 
     //enable/disable lr and lit to look like gunfire
-    IEnumerator DisableLR(Vector3[] point)
+    IEnumerator DisableLR(Vector3[] point, int weapon)
     {
 
-        weps.curAmmo[weps.selectedWeapon] -= 1;
+        weps.curAmmo[weapon] -= 1;
         lit.enabled = true;
         lr.numPositions = 2;
         lr.enabled = true;
         //If shotgun then render three shots at 45 degree angles, otherwise just render the one
-        if (weps.selectedWeapon == 2)
+        if (weapon == 2)
         {
             lr.numPositions = 6;
 

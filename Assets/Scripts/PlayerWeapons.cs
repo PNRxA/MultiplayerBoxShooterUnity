@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(Player))]
 [RequireComponent(typeof(PlayerMove))]
 [RequireComponent(typeof(GunMove))]
-public class PlayerWeapons : MonoBehaviour
+public class PlayerWeapons : NetworkBehaviour
 {
     GunMove gun;
+    [SyncVar]
     public int selectedWeapon;
     public int[] maxAmmo = new int[3];
     public int[] curAmmo = new int[3];
@@ -41,32 +43,40 @@ public class PlayerWeapons : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Switch weapon up with e and down with q
-        if (Input.GetKeyDown(KeyCode.E))
+        if (isLocalPlayer)
         {
-            SwitchWeapon(true);
-        }
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            SwitchWeapon(false);
+            //Switch weapon up with e and down with q
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                SwitchWeapon(true);
+            }
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                SwitchWeapon(false);
+            }
+
         }
     }
 
     void FixedUpdate()
     {
-        for (int x = 0; x < curAmmo.Length; x++)
+        if (isLocalPlayer)
         {
-            if (curAmmo[x] <= 0)
+            for (int x = 0; x < curAmmo.Length; x++)
             {
-                reloading[x] = true;
+                if (curAmmo[x] <= 0)
+                {
+                    reloading[x] = true;
+                }
             }
-        }
 
-        for (int i = 0; i < reloading.Length; i++)
-        {
-            if (reloading[i] && Time.time > nextReload)
+            for (int i = 0; i < reloading.Length; i++)
             {
-                Reload(i);
+                if (reloading[i] && Time.time > nextReload)
+                {
+                    Reload(i);
+                }
+
             }
         }
     }
@@ -87,18 +97,12 @@ public class PlayerWeapons : MonoBehaviour
         {
             case 0:
                 Debug.Log("0");
-                gun.fireRate = .5f;
-                gun.damage = 1;
                 break;
             case 1:
                 Debug.Log("1");
-                gun.fireRate = .1f;
-                gun.damage = .1f;
                 break;
             case 2:
                 Debug.Log("2");
-                gun.fireRate = 3;
-                gun.damage = 3;
                 break;
             default:
                 Debug.Log("Default case");
