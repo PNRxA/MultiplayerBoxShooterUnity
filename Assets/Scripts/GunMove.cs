@@ -40,15 +40,19 @@ public class GunMove : NetworkBehaviour
         {
             //Move the gun around the player
             Move();
-            //If using mouse, attack on mouse0 down
-            if (Input.GetButton("Fire1") && Time.time > nextFire)
+            //If there is ammo in the current gun then shoot it
+            if (weps.curAmmo[weps.selectedWeapon] > 0 && !weps.reloading[weps.selectedWeapon])
             {
-                CmdAttack();
-            }
-            //If using controller, attack on right trigger down
-            if (Input.GetAxisRaw("Fire1") > 0 && Time.time > nextFire)
-            {
-                CmdAttack();
+                //If using mouse, attack on mouse0 down
+                if (Input.GetButton("Fire1") && Time.time > nextFire)
+                {
+                    CmdAttack();
+                }
+                //If using controller, attack on right trigger down
+                if (Input.GetAxisRaw("Fire1") > 0 && Time.time > nextFire)
+                {
+                    CmdAttack();
+                }
             }
         }
     }
@@ -111,9 +115,11 @@ public class GunMove : NetworkBehaviour
         RaycastHit hit;
 
 
+        Vector3[] points = new Vector3[3];
         //Cast ray for shotgun
         if (weps.selectedWeapon == 2)
         {
+
             if (Physics.Raycast(target.transform.position, fwd, out hit))
             {
                 Debug.Log("hit.transform.name");
@@ -123,7 +129,9 @@ public class GunMove : NetworkBehaviour
                     hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
                     hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
                     Debug.Log("Close to enemy");
+
                 }
+                points[0] = hit.point;
                 if (Physics.Raycast(target.transform.position, (Quaternion.Euler(0, -10, 0) * fwd), out hit))
                 {
                     Debug.Log("hit.transform.name");
@@ -133,7 +141,9 @@ public class GunMove : NetworkBehaviour
                         hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
                         hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
                         Debug.Log("Close to enemy");
+
                     }
+                    points[1] = hit.point;
                     if (Physics.Raycast(target.transform.position, (Quaternion.Euler(0, 10, 0) * fwd), out hit))
                     {
                         Debug.Log("hit.transform.name");
@@ -143,10 +153,12 @@ public class GunMove : NetworkBehaviour
                             hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
                             hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
                             Debug.Log("Close to enemy");
+
                         }
+                        points[2] = hit.point;
 
 
-                        StartCoroutine("DisableLR", hit.point);
+                        StartCoroutine("DisableLR", points);
                         nextFire = Time.time + fireRate;
                     }
                 }
@@ -164,9 +176,11 @@ public class GunMove : NetworkBehaviour
                     hit.transform.gameObject.GetComponent<Enemy>().playerToCredit = gameObject.GetComponent<Player>();
                     hit.transform.gameObject.GetComponent<Enemy>().health -= damage;
                     Debug.Log("Close to enemy");
-                }
 
-                StartCoroutine("DisableLR", hit.point);
+                }
+                points[0] = hit.point;
+
+                StartCoroutine("DisableLR", points);
 
                 nextFire = Time.time + fireRate;
             }
@@ -174,26 +188,29 @@ public class GunMove : NetworkBehaviour
     }
 
     //enable/disable lr and lit to look like gunfire
-    IEnumerator DisableLR(Vector3 point)
+    IEnumerator DisableLR(Vector3[] point)
     {
+
+        weps.curAmmo[weps.selectedWeapon] -= 1;
         lit.enabled = true;
         lr.numPositions = 2;
         lr.enabled = true;
+        //If shotgun then render three shots at 45 degree angles, otherwise just render the one
         if (weps.selectedWeapon == 2)
         {
             lr.numPositions = 6;
 
             lr.SetPosition(0, target.position);
-            lr.SetPosition(1, point);
+            lr.SetPosition(1, point[0]);
             lr.SetPosition(2, target.position);
-            lr.SetPosition(3, Quaternion.Euler(0, 10, 0) * point);
+            lr.SetPosition(3, point[1]);
             lr.SetPosition(4, target.position);
-            lr.SetPosition(5, Quaternion.Euler(0, -10, 0) * point);
+            lr.SetPosition(5, point[2]);
         }
         else
         {
             lr.SetPosition(0, target.position);
-            lr.SetPosition(1, point);
+            lr.SetPosition(1, point[0]);
         }
         yield return new WaitForSeconds(.05f);
         lr.enabled = false;
