@@ -58,7 +58,10 @@ public class Enemy : NetworkBehaviour
 
     void FixedUpdate()
     {
-        UpdateTarget();
+        if (isServer)
+        {
+            UpdateTarget();
+        }
     }
 
     void UpdateTarget()
@@ -76,7 +79,10 @@ public class Enemy : NetworkBehaviour
             }
         }
         //Move towards target
-        agent.destination = closestPlayer.transform.position;
+        if (closestPlayer != null)
+        {
+            agent.destination = closestPlayer.transform.position;
+        }
     }
 
     void OnGUI()

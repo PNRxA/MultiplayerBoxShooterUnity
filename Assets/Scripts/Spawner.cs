@@ -22,11 +22,13 @@ public class Spawner : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Time.time > nextSpawn)
+        if (isServer)
         {
-            Spawn();
+            if (Time.time > nextSpawn)
+            {
+                Spawn();
+            }
         }
-
     }
 
     // [Command]
