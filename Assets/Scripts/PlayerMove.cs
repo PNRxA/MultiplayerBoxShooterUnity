@@ -10,6 +10,7 @@ public class PlayerMove : NetworkBehaviour
     float speed = 15;
 
     Rigidbody rigi;
+    Player player;
 
     // Use this for initialization
     void Start()
@@ -20,6 +21,7 @@ public class PlayerMove : NetworkBehaviour
     void Awake()
     {
         rigi = GetComponent<Rigidbody>();
+        player = GetComponent<Player>();
     }
 
     // Update is called once per frame
@@ -28,7 +30,10 @@ public class PlayerMove : NetworkBehaviour
         //Only move if player is locally connected
         if (isLocalPlayer)
         {
-            Move();
+            if (player.gameOver == false)
+            {
+                Move();
+            }
         }
     }
 

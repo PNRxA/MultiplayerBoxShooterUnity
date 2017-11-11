@@ -32,7 +32,7 @@ public class EnemyNetworkSync : NetworkBehaviour
                 CmdSync(transform.position, transform.rotation);
             }
         }
-        else
+        else 
         {
             transform.position = Vector3.Lerp(transform.position, realPosition, 0.1f);
             transform.rotation = Quaternion.Lerp(transform.rotation, realRotation, 0.1f);

@@ -13,6 +13,7 @@ public class GunMove : NetworkBehaviour
     Light lit;
     LineRenderer lr;
     PlayerWeapons weps;
+    Player plyr;
 
     public float pistolDamage = 1;
     public float rifleDamage = .1f;
@@ -32,6 +33,7 @@ public class GunMove : NetworkBehaviour
         lit = GetComponent<Light>();
         lr = GetComponent<LineRenderer>();
         weps = GetComponent<PlayerWeapons>();
+        plyr = GetComponent<Player>();
     }
 
     // Update is called once per frame
@@ -40,53 +42,47 @@ public class GunMove : NetworkBehaviour
         //Only allow control to the local player
         if (isLocalPlayer)
         {
-            //Move the gun around the player
-            Move();
-            //If there is ammo in the current gun then shoot it
-            if (weps.curAmmo[weps.selectedWeapon] > 0 && !weps.reloading[weps.selectedWeapon])
+            if (plyr.gameOver == false)
             {
-                //If using mouse, attack on mouse0 down
-                if (Input.GetButton("Fire1") && Time.time > nextFire)
+                //Move the gun around the player
+                Move();
+                //If there is ammo in the current gun then shoot it
+                if (weps.curAmmo[weps.selectedWeapon] > 0 && !weps.reloading[weps.selectedWeapon])
                 {
-                    nextFire = Time.time + fireRate[weps.selectedWeapon];
-                    int selectedWeapon = weps.selectedWeapon;
-                    float damage = 0;
-                    switch (selectedWeapon)
+                    //If using mouse, attack on mouse0 down
+                    if (Input.GetButton("Fire1") && Time.time > nextFire)
                     {
-                        case 0:
-                            damage = pistolDamage;
-                            break;
-                        case 1:
-                            damage = rifleDamage;
-                            break;
-                        case 2:
-                            damage = shotgunDamage;
-                            break;
+                        Shoot();
                     }
-                    CmdAttack(selectedWeapon, damage);
-                }
-                //If using controller, attack on right trigger down
-                if (Input.GetAxisRaw("Fire1") > 0 && Time.time > nextFire)
-                {
-                    nextFire = Time.time + fireRate[weps.selectedWeapon];
-                    int selectedWeapon = weps.selectedWeapon;
-                    float damage = 0;
-                    switch (selectedWeapon)
+                    //If using controller, attack on right trigger down
+                    if (Input.GetAxisRaw("Fire1") > 0 && Time.time > nextFire)
                     {
-                        case 0:
-                            damage = pistolDamage;
-                            break;
-                        case 1:
-                            damage = rifleDamage;
-                            break;
-                        case 2:
-                            damage = shotgunDamage;
-                            break;
+                        Shoot();
                     }
-                    CmdAttack(selectedWeapon, damage);
                 }
             }
         }
+    }
+
+    //Shoot gun at interval
+    void Shoot()
+    {
+        nextFire = Time.time + fireRate[weps.selectedWeapon];
+        int selectedWeapon = weps.selectedWeapon;
+        float damage = 0;
+        switch (selectedWeapon)
+        {
+            case 0:
+                damage = pistolDamage;
+                break;
+            case 1:
+                damage = rifleDamage;
+                break;
+            case 2:
+                damage = shotgunDamage;
+                break;
+        }
+        CmdAttack(selectedWeapon, damage);
     }
 
     void Move()

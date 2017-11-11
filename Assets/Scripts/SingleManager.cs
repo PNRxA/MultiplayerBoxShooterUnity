@@ -14,9 +14,7 @@ public class SingleManager : NetworkManager
             StopMatchMaker();
         // Just make sure no server is running
         if (!IsClientConnected() && !NetworkServer.active && matchMaker == null)
-            StartHost();
-
-        
+            StartHost();  
     }
 
     void Awake()

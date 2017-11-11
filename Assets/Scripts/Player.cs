@@ -9,6 +9,9 @@ public class Player : NetworkBehaviour
     public int health = 10;
     [SyncVar]
     public int score = 0;
+    public bool gameOver = false;
+
+    float scrH, scrW;
 
     // Use this for initialization
     void Start()
@@ -20,5 +23,23 @@ public class Player : NetworkBehaviour
     void Update()
     {
 
+    }
+
+    void OnGUI()
+    {
+        if (isLocalPlayer)
+        {
+            scrH = Screen.height / 9;
+            scrW = Screen.width / 16;
+            if (health <= 0)
+            {
+                gameOver = true;
+                GUI.Box(new Rect(0, 0, Screen.width, Screen.height), "GAME OVER");
+                if (GUI.Button(new Rect(scrW * 7.5f, scrH * 4.5f, scrW, scrH), "Quit"))
+                {
+                    Application.Quit();
+                }
+            }
+        }
     }
 }
