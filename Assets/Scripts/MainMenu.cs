@@ -20,6 +20,7 @@ public class MainMenu : NetworkBehaviour
     private bool fullscreenToggle;
     private Vector2 resScrollPosition;
     public AudioSource audi;
+    public GUISkin guiskin;
 
     // Use this for initialization
     void Start()
@@ -66,6 +67,8 @@ public class MainMenu : NetworkBehaviour
 
     void OnGUI()
     {
+        GUI.skin = guiskin;
+        
         scrH = Screen.height / 9;
         scrW = Screen.width / 16;
         //In the options menu  
